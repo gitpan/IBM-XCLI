@@ -1,5 +1,8 @@
 Revision history for IBM-XCLI
 
+0.051	Thu Apr 11 2013
+	Three arg open, explicit close on filehandle, use carp rather than warn.
+
 0.05	Wed Aug 22 2012
 	Major rewrite;
 		- Methods fc_login_status and connected_hosts have been removed.

@@ -3,10 +3,10 @@ package IBM::XCLI;
 use warnings;
 use strict;
 
-use Carp qw(croak);
+use Carp;
 use Fcntl;
 
-our $VERSION	= '0.5';
+our $VERSION	= '0.51';
 
 sub new 		{
 	my ($class, %args) = @_;
@@ -19,6 +19,7 @@ sub new 		{
 	open my $dummy_conn, '-|', $self->{xcli}, 'test'
 					or croak "Constructor failed: XCLI dummy connection failed";
 	my $output = <$dummy_conn>;
+	close $output;
 	$output eq "Missing user.\n" 	or croak "Constructor failed: XCLI dummy test failed";
 	return $self;
 }
@@ -69,7 +70,7 @@ our %M_MAP = (
 
 			foreach my $arg (@{$M_MAP{$m}{xcli_args}}) {
 				@_	? $args .= "$arg=".(shift).' '
-					: return warn "Missing argument $arg" 
+					: return carp "Missing argument $arg" 
 			}
 			
 			return $self->_xcli_execute( xcli_cmd => $M_MAP{$m}{xcli_cmd}, xcli_args=> $args );
@@ -100,7 +101,7 @@ sub _xcli_execute	{
 	my ($self,%args)= @_;
 	$args{xcli_args} ||= '';
 	my $xcli_arg	= "-s -u $self->{username} -p $self->{password} -m $self->{ip_address} $args{xcli_cmd} $args{xcli_args} -t all";
-	open my $conn, "$self->{xcli} $xcli_arg|" or croak 'Couldn\'t open connection to XCLI';
+	open my $conn, '-|', $self->{xcli}, $xcli_arg or croak 'Couldn\'t open connection to XCLI';
 	my @result = map { chomp ; $_ } <$conn>;
 
 	return ( $result[0] =~ /^["\w*",?]+/ ? @result : undef )
